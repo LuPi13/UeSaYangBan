@@ -56,10 +56,17 @@
 ---
 
 ## 명령어
+##### [대괄호]는 필수 항목, (소괄호=기본값)은 선택 항목입니다.
 
-- > 테스트
-  > - `/hello`: 유저 확인 테스트
-  > - `/say`: arguments 테스트
-  > - `/dm`: DM 테스트
+- > Youtube 음원 재생
+  > - `/youtube add [URL] (index=1)`: 유튜브 음원을 재생 목록에 추가합니다.
+  > - `/youtube play (index) (channel=발신자 음성채널)`: 재생 목록을 재생합니다.
+  > - `/youtube queue`: 현재 재생 중인 음원과 재생 목록을 확인합니다.
+  > - `/youtube loop`: 재생 목록을 반복 재생합니다.
+  > - `/youtube remove [index]`: 재생 목록에서 음원을 제거합니다.
+  > - `/youtube skip`: 현재 재생 중인 음원을 건너뜁니다.
+  > - `/youtube pause`: 음원 재생을 일시 정지합니다.
+  > - `/youtube resume`: 일시 정지된 음원을 재개합니다.
+  > - `/youtube exit`: 음원 재생을 종료하고 음원 채널에서 내보냅니다.
 
 ---
