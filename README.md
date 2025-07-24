@@ -40,10 +40,12 @@
 
 4.  **설정 파일 준비**
     - `config.template.json` 파일을 복사하여 `config.json` 파일을 생성합니다.
-    - `config.json` 파일을 열어 `YOUR_TOKEN_HERE` 부분을 실제 Discord 봇 토큰으로 교체합니다.
+    - `config.json` 파일을 수정하여 봇 토큰, 로그 저장 여부, FFmpeg 경로 등을 설정합니다.
       ```json
       {
-        "token": "여기에_실제_봇_토큰을_입력하세요"
+        "token": "여기에_실제_봇_토큰을_입력하세요",
+        "save_log": true,
+        "ffmpeg_path": "C:/ffmpeg/bin/ffmpeg.exe"
       }
       ```
     *보안을 위해 `config.json` 파일은 Git 버전 관리에서 제외됩니다.*
@@ -56,10 +58,17 @@
 ---
 
 ## 명령어
+##### [대괄호]는 필수 항목, (소괄호=기본값)은 선택 항목입니다.
 
-- > 테스트
-  > - `/hello`: 유저 확인 테스트
-  > - `/say`: arguments 테스트
-  > - `/dm`: DM 테스트
+- > Youtube 음원 재생
+  > - `/youtube add [URL] (index=1)`: 유튜브 음원을 재생 목록에 추가합니다.
+  > - `/youtube play (index) (channel=발신자 음성채널)`: 재생 목록을 재생합니다.
+  > - `/youtube queue`: 현재 재생 중인 음원과 재생 목록을 확인합니다.
+  > - `/youtube loop`: 재생 목록을 반복 재생합니다.
+  > - `/youtube remove [index]`: 재생 목록에서 음원을 제거합니다.
+  > - `/youtube skip`: 현재 재생 중인 음원을 건너뜁니다.
+  > - `/youtube pause`: 음원 재생을 일시 정지합니다.
+  > - `/youtube resume`: 일시 정지된 음원을 재개합니다.
+  > - `/youtube exit`: 음원 재생을 종료하고 음원 채널에서 내보냅니다.
 
 ---
