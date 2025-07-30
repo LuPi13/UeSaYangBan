@@ -1,6 +1,7 @@
 import enum
 
 import discord
+import yaml
 from discord import app_commands
 from discord.ext import commands
 import os
@@ -88,8 +89,8 @@ class Youtube(commands.Cog):
         song = queue[index]
         
         try:
-            with open("config.json", "r") as f:
-                config = json.load(f)
+            with open("config.yml", "r") as f:
+                config = yaml.safe_load(f)
                 ffmpeg_path = config["ffmpeg_path"]
 
             audio_source = discord.FFmpegPCMAudio(song["path"], executable=ffmpeg_path)
