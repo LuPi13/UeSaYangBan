@@ -33,6 +33,7 @@ public class VerifyHandler implements IHttpRequestHandler {
             JSONObject json = new JSONObject(body);
 
             String name = json.getString("name");
+            String botAddress = json.getString("bot_address");
             String token = json.getString("token");
             long discordServerId = json.getLong("discord_server_id");
             long discordChannelId = json.getLong("discord_channel_id");
@@ -40,8 +41,13 @@ public class VerifyHandler implements IHttpRequestHandler {
             String purpose = json.optString("purpose", "default");
 
             if (verifyToken(token)) {
-                saveLink(name, discordServerId, discordChannelId, type, purpose);
-                removeTempToken();
+                if (saveLink(name, botAddress, discordServerId, discordChannelId, type, purpose)) {
+                    removeTempToken();
+                }
+                else {
+                    plugin.getLogger().log(Level.SEVERE, "Failed to save link for name: " + name);
+                    return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.INTERNAL_ERROR, "application/json", "{\"error\":\"failed_to_save_link\"}");
+                }
                 return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, "application/json", "{\"status\":\"success\"}");
             } else {
                 return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.UNAUTHORIZED, "application/json", "{\"error\":\"invalid_token\"}");
@@ -72,17 +78,24 @@ public class VerifyHandler implements IHttpRequestHandler {
         }
     }
 
-    private void saveLink(String name, long discordServerId, long discordChannelId, String type, String purpose) {
+    private boolean saveLink(String name, String address, long discordServerId, long discordChannelId, String type, String purpose) {
         File linksFile = new File(plugin.getDataFolder(), "links.yml");
         YamlConfiguration linksConfig = YamlConfiguration.loadConfiguration(linksFile);
+        if (linksConfig.contains(name)) {
+            plugin.getLogger().log(Level.SEVERE, "Link already exists in config");
+            throw new IllegalArgumentException("Link with name '" + name + "' already exists.");
+        }
+        linksConfig.set(name + ".discord_bot_address", address);
         linksConfig.set(name + ".discord_server_id", discordServerId);
         linksConfig.set(name + ".discord_channel_id", discordChannelId);
         linksConfig.set(name + ".type", type);
         linksConfig.set(name + ".purpose", purpose);
         try {
             linksConfig.save(linksFile);
+            return true;
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save link", e);
+            return false;
         }
     }
 

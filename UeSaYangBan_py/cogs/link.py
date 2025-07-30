@@ -49,19 +49,30 @@ class Link(commands.Cog):
     @link_group.command(name="add", description="Discord 채널-Minecraft 서버 연결을 추가합니다. Minecraft 서버에서 `/linkdiscord` 명령어로 나온 문자열이 필요합니다.")
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.describe(base64_string="/linkdiscord 명령어로 나온 문자열",
-                           name="해당 연결의 이름을 지어주세요(영어+숫자, 띄어쓰기X)",
+                           connection_name="해당 연결의 이름을 지어주세요(영어+숫자, 띄어쓰기X)",
                            channel="연결할 Discord 채널",
                            purpose="연결 목적 (기본값: default)"
                            )
+    @app_commands.choices(purpose=[
+        app_commands.Choice(name="stream_log", value="stream_log"),
+        app_commands.Choice(name="sync_chat", value="sync_chat"),
+        app_commands.Choice(name="rcon", value="rcon"),
+        app_commands.Choice(name="event", value="event")
+    ])
     async def link(self,
                    interaction: discord.Interaction,
                    base64_string: str,
-                   name: str,
+                   connection_name: str,
                    channel: typing.Union[discord.TextChannel, discord.VoiceChannel],
-                   purpose: str = "default"
+                   purpose: str
                    ):
         decoded_json_str = None
         await interaction.response.defer(thinking=True, ephemeral=True)
+
+        # stream_log, sync_chat, rcon은 채팅채널에만 연결 가능
+        if purpose in ["stream_log", "sync_chat", "rcon"] and not isinstance(channel, discord.TextChannel):
+            await interaction.followup.send("해당 기능은 텍스트 채널에만 연결할 수 있습니다.", ephemeral=True)
+            return
 
         # base64 디코딩
         try:
@@ -89,8 +100,8 @@ class Link(commands.Cog):
 
         # 중복 연결 확인
         all_links = load_links()
-        if name in all_links:
-            await interaction.followup.send(f"이미 '{name}'이라는 이름으로 연결이 존재합니다. 다른 이름을 사용해주세요.", ephemeral=True)
+        if connection_name in all_links:
+            await interaction.followup.send(f"이미 '{connection_name}'이라는 이름으로 연결이 존재합니다. 다른 이름을 사용해주세요.", ephemeral=True)
             return
 
         # POST 요청
@@ -102,12 +113,29 @@ class Link(commands.Cog):
             await interaction.followup.send("지원하지 않는 채널 유형입니다.", ephemeral=True)
             return
 
+        # 봇 http 주소는 config.yml에서 읽어오기
+        config_path = 'config.yml'
+        if not os.path.exists(config_path):
+            await interaction.followup.send("설정 파일(config.yml)이 존재하지 않습니다.", ephemeral=True)
+            return
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+                http_host = config.get("http_host", "127.0.0.1")
+                http_port = config.get("http_port", 8080)
+                bot_address = f"http://{http_host}:{http_port}"
+        except Exception as e:
+            log.error(f"Failed to read config file: {e}")
+            await interaction.followup.send("설정 파일을 읽는 데 실패했습니다.", ephemeral=True)
+            return
+
         payload = {
-            "name": name,
+            "name": connection_name,
             "token": token,
+            "bot_http_address": bot_address,
             "discord_server_id": str(interaction.guild.id),
             "discord_channel_id": str(channel.id),
-            "type": channel_type,
+            "discord_channel_type": channel_type,
             "purpose": purpose
         }
 
@@ -118,15 +146,16 @@ class Link(commands.Cog):
                         all_links = load_links()
 
                         new_link_data = {
+                            "mc_http_address": address,
                             "discord_server_id": interaction.guild.id,
                             "discord_channel_id": channel.id,
-                            "mc_server_address": address,
+                            "discord_channel_type": channel_type,
                             "purpose": purpose
                         }
-                        all_links[name] = new_link_data
+                        all_links[connection_name] = new_link_data
                         save_links(all_links)
-                        log.info(f"Link added: {name} -> {address} for channel {channel.id}")
-                        await interaction.followup.send(f"연결이 성공적으로 추가되었습니다: {name} -> {address} ({channel_type})", ephemeral=False)
+                        log.info(f"Link added: {connection_name} -> {address} for channel {channel.id}")
+                        await interaction.followup.send(f"연결이 성공적으로 추가되었습니다: {connection_name} -> {address} ({channel_type})", ephemeral=False)
 
                     else:
                         error_data = await response.text()
