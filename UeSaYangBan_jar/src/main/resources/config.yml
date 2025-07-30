@@ -1,0 +1,5 @@
+# 개방할 HTTP 포트 설정, 기본값: 8123
+http-port: 8123
+
+# verify token의 만료 시간(milliseconds), 기본값: 300000(5분)
+verify-token-expire-time: 300000

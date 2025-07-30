@@ -1,0 +1,8 @@
+discord.py
+aiohttp~=3.12.14
+mcrcon~=0.7.0
+pytubefix~=9.4.1
+PyNaCl
+aiofiles
+audioop-lts
+PyYAML~=6.0.2

@@ -1,0 +1,8 @@
+name: UeSaYangBan_jar
+version: 1.0
+main: com.github.LuPi13.ueSaYangBan.UeSaYangBanJar
+api-version: '1.21'
+commands:
+  linkdiscord:
+    description: Links the Minecraft server to a Discord server.
+    usage: /linkdiscord
