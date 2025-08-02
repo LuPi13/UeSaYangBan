@@ -32,16 +32,11 @@ public class VerifyHandler implements IHttpRequestHandler {
 
             JSONObject json = new JSONObject(body);
 
-            String name = json.getString("name");
-            String botAddress = json.getString("bot_address");
             String token = json.getString("token");
-            long discordServerId = json.getLong("discord_server_id");
-            long discordChannelId = json.getLong("discord_channel_id");
-            String type = json.optString("type", "default");
-            String purpose = json.optString("purpose", "default");
+            String name = json.getString("name");
 
             if (verifyToken(token)) {
-                if (saveLink(name, botAddress, discordServerId, discordChannelId, type, purpose)) {
+                if (saveLink(json)) {
                     removeTempToken();
                 }
                 else {
@@ -78,18 +73,28 @@ public class VerifyHandler implements IHttpRequestHandler {
         }
     }
 
-    private boolean saveLink(String name, String address, long discordServerId, long discordChannelId, String type, String purpose) {
+    private boolean saveLink(JSONObject json) {
+        String name = json.getString("name");
+        String botHttpHost = json.getString("bot_http_host");
+        int botHttpPort = json.getInt("bot_http_port");
+        long discordServerId = json.getLong("discord_server_id");
+        long discordChannelId = json.getLong("discord_channel_id");
+        String type = json.optString("discord_channel_type", "default");
+        String purpose = json.optString("purpose", "default");
+
         File linksFile = new File(plugin.getDataFolder(), "links.yml");
         YamlConfiguration linksConfig = YamlConfiguration.loadConfiguration(linksFile);
         if (linksConfig.contains(name)) {
             plugin.getLogger().log(Level.SEVERE, "Link already exists in config");
             throw new IllegalArgumentException("Link with name '" + name + "' already exists.");
         }
-        linksConfig.set(name + ".discord_bot_address", address);
+        linksConfig.set(name + ".bot_http_host", botHttpHost);
+        linksConfig.set(name + ".bot_http_port", botHttpPort);
         linksConfig.set(name + ".discord_server_id", discordServerId);
         linksConfig.set(name + ".discord_channel_id", discordChannelId);
         linksConfig.set(name + ".type", type);
         linksConfig.set(name + ".purpose", purpose);
+
         try {
             linksConfig.save(linksFile);
             return true;

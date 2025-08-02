@@ -40,15 +40,15 @@ public class LinkDiscord implements CommandExecutor {
 
         // 서버 주소 생성
         String serverIp = Bukkit.getServer().getIp(); // server.properties에서 ip를 가져오므로 반드시 명시되어 있어야 함.
-        int serverPort = plugin.getConfig().getInt("http-port");
-        String serverAddress = "http://" + serverIp + ":" + serverPort;
+        int httpPort = plugin.getConfig().getInt("http-port");
 
         // JSON 문자열 생성
         String jsonString = String.format("""
                 {
-                    "server_address": "%s",
+                    "mc_server_address": "%s",
+                    "mc_http_port": %d,
                     "token": "%s"
-                }""", serverAddress, token);
+                }""", serverIp, httpPort, token);
 
         // Base64 encode
         String base64EncodedString = Base64.getEncoder().encodeToString(jsonString.getBytes());

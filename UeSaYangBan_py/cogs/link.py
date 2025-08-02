@@ -85,10 +85,11 @@ class Link(commands.Cog):
         # JSON parsing
         try:
             data = json.loads(decoded_json_str)
-            address = data.get("server_address")
+            mc_address = data.get("mc_server_address")
+            mc_port = data.get("mc_http_port")
             token = data.get("token")
 
-            if not address or not token:
+            if not mc_address or not mc_port or not token:
                 log.error("Missing 'server_address' or 'token' in the decoded data. Data: %s", data)
                 await interaction.followup.send("유효하지 않은 데이터입니다. 'server_address'와 'token'이 필요합니다.", ephemeral=True)
                 return
@@ -121,9 +122,8 @@ class Link(commands.Cog):
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)
-                http_host = config.get("http_host", "127.0.0.1")
-                http_port = config.get("http_port", 8080)
-                bot_address = f"http://{http_host}:{http_port}"
+                bot_http_host = config.get("http_host", "127.0.0.1")
+                bot_http_port = config.get("http_port", 8080)
         except Exception as e:
             log.error(f"Failed to read config file: {e}")
             await interaction.followup.send("설정 파일을 읽는 데 실패했습니다.", ephemeral=True)
@@ -132,7 +132,8 @@ class Link(commands.Cog):
         payload = {
             "name": connection_name,
             "token": token,
-            "bot_http_address": bot_address,
+            "bot_http_host": bot_http_host,
+            "bot_http_port": bot_http_port,
             "discord_server_id": str(interaction.guild.id),
             "discord_channel_id": str(channel.id),
             "discord_channel_type": channel_type,
@@ -140,13 +141,15 @@ class Link(commands.Cog):
         }
 
         try:
+            mc_http_address = f"http://{mc_address}:{mc_port}"
             async with aiohttp.ClientSession() as session:
-                async with session.post(address + "/verify", json=payload) as response:
+                async with session.post(mc_http_address + "/verify", json=payload) as response:
                     if response.status == 200:
                         all_links = load_links()
 
                         new_link_data = {
-                            "mc_http_address": address,
+                            "mc_http_address": mc_address,
+                            "mc_http_port": mc_port,
                             "discord_server_id": interaction.guild.id,
                             "discord_channel_id": channel.id,
                             "discord_channel_type": channel_type,
@@ -154,8 +157,8 @@ class Link(commands.Cog):
                         }
                         all_links[connection_name] = new_link_data
                         save_links(all_links)
-                        log.info(f"Link added: {connection_name} -> {address} for channel {channel.id}")
-                        await interaction.followup.send(f"연결이 성공적으로 추가되었습니다: {connection_name} -> {address} ({channel_type})", ephemeral=False)
+                        log.info(f"Link added: {connection_name} -> {mc_http_address} for channel {channel.id}")
+                        await interaction.followup.send(f"연결이 성공적으로 추가되었습니다: {connection_name} -> {mc_http_address} ({channel_type})", ephemeral=False)
 
                     else:
                         error_data = await response.text()
