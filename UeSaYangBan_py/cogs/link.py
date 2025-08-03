@@ -67,7 +67,7 @@ class Link(commands.Cog):
                    purpose: str
                    ):
         decoded_json_str = None
-        await interaction.response.defer(thinking=True, ephemeral=True)
+        await interaction.response.defer(thinking=True, ephemeral=False)
 
         # stream_log, sync_chat, rcon은 채팅채널에만 연결 가능
         if purpose in ["stream_log", "sync_chat", "rcon"] and not isinstance(channel, discord.TextChannel):
@@ -178,7 +178,7 @@ class Link(commands.Cog):
     app_commands.Choice(name=name, value=name) for name in load_links().keys()
     ])
     async def remove(self, interaction: discord.Interaction, connection_name: str):
-        await interaction.response.defer(thinking=True, ephemeral=True)
+        await interaction.response.defer(thinking=True, ephemeral=False)
         all_links = load_links()
 
         if connection_name not in all_links:

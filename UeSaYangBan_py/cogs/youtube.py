@@ -1,5 +1,3 @@
-import enum
-
 import discord
 import yaml
 from discord import app_commands
@@ -7,7 +5,6 @@ from discord.ext import commands
 import os
 from pytubefix import YouTube
 import logging
-import json
 
 log = logging.getLogger(__name__)
 
@@ -113,7 +110,7 @@ class Youtube(commands.Cog):
     @youtube.command(name="play", description="플레이리스트를 재생합니다. 특정 번호부터 재생할 수 있습니다.")
     @app_commands.describe(index="재생을 시작할 곡의 번호 (기본값: 1)", channel="음성 채널 (선택)")
     async def play(self, interaction: discord.Interaction, index: int = None, channel: discord.VoiceChannel = None):
-        await interaction.response.defer(thinking=True, ephemeral=True)
+        # await interaction.response.defer(thinking=True, ephemeral=True)
         guild_id = interaction.guild_id
         playlist_data = self._get_playlist(guild_id)
         queue = playlist_data["queue"]
@@ -141,7 +138,7 @@ class Youtube(commands.Cog):
     @youtube.command(name="add", description="재생 목록에 유튜브 URL을 추가합니다.")
     @app_commands.describe(url="추가할 유튜브 URL", index="추가할 위치 (기본값: 마지막)")
     async def add(self, interaction: discord.Interaction, url: str, index: int = None):
-        await interaction.response.defer(thinking=True, ephemeral=True)
+        await interaction.response.defer(thinking=True, ephemeral=False)
         guild_id = interaction.guild_id
         playlist_data = self._get_playlist(guild_id)
         queue = playlist_data['queue']
@@ -196,7 +193,7 @@ class Youtube(commands.Cog):
     @youtube.command(name="remove", description="재생 목록에서 항목을 제거하고 파일을 삭제합니다.")
     @app_commands.describe(number="제거할 항목의 번호")
     async def remove(self, interaction: discord.Interaction, number: int):
-        await interaction.response.defer(ephemeral=True)
+        # await interaction.response.defer(ephemeral=True)
         guild_id = interaction.guild_id
         playlist_data = self._get_playlist(guild_id)
         queue = playlist_data["queue"]
@@ -247,13 +244,13 @@ class Youtube(commands.Cog):
             playlist_data["now_playing_index"] = -1
             voice_client.stop()
             await voice_client.disconnect()
-            await interaction.response.send_message("음성 채널에서 나갔습니다. 플레이리스트는 유지됩니다.", ephemeral=False)
+            await interaction.followup.send("음성 채널에서 나갔습니다. 플레이리스트는 유지됩니다.", ephemeral=False)
         else:
-            await interaction.response.send_message("봇이 음성 채널에 없습니다.", ephemeral=True)
+            await interaction.followup.send("봇이 음성 채널에 없습니다.", ephemeral=True)
 
     @youtube.command(name="queue", description="재생 목록을 보여줍니다.")
     async def queue(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
+        # await interaction.response.defer(ephemeral=True)
         guild_id = interaction.guild_id
         playlist_data = self._get_playlist(guild_id)
         queue = playlist_data["queue"]
@@ -279,34 +276,34 @@ class Youtube(commands.Cog):
         playlist_data = self._get_playlist(interaction.guild_id)
         playlist_data["loop"] = not playlist_data["loop"]
         status = "활성화" if playlist_data["loop"] else "비활성화"
-        await interaction.response.send_message(f"반복 재생이 **{status}**되었습니다.", ephemeral=False)
+        await interaction.followup.send(f"반복 재생이 **{status}**되었습니다.", ephemeral=False)
 
     @youtube.command(name="skip", description="현재 재생 중인 곡을 건너뜁니다.")
     async def skip(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
         if voice_client and voice_client.is_playing():
             voice_client.stop() # This will trigger the after_playback callback
-            await interaction.response.send_message("현재 곡을 건너뛰었습니다.", ephemeral=False)
+            await interaction.followup.send("현재 곡을 건너뛰었습니다.", ephemeral=False)
         else:
-            await interaction.response.send_message("재생 중인 곡이 없습니다.", ephemeral=True)
+            await interaction.followup.send("재생 중인 곡이 없습니다.", ephemeral=True)
 
     @youtube.command(name="pause", description="현재 재생 중인 곡을 일시정지합니다.")
     async def pause(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
         if voice_client and voice_client.is_playing():
             voice_client.pause()
-            await interaction.response.send_message("재생을 일시정지했습니다.", ephemeral=False)
+            await interaction.followup.send("재생을 일시정지했습니다.", ephemeral=False)
         else:
-            await interaction.response.send_message("이미 일시정지 상태입니다.", ephemeral=True)
+            await interaction.followup.send("이미 일시정지 상태입니다.", ephemeral=True)
 
     @youtube.command(name="resume", description="일시정지된 곡을 다시 재생합니다.")
     async def resume(self, interaction: discord.Interaction):
         voice_client = interaction.guild.voice_client
         if voice_client and voice_client.is_paused():
             voice_client.resume()
-            await interaction.response.send_message("재생을 다시 시작합니다.", ephemeral=False)
+            await interaction.followup.send("재생을 다시 시작합니다.", ephemeral=False)
         else:
-            await interaction.response.send_message("이미 재생 중입니다.", ephemeral=True)
+            await interaction.followup.send("이미 재생 중입니다.", ephemeral=True)
 
     @youtube.command(name="clear", description="플레이리스트를 모두 삭제합니다.")
     async def clear(self, interaction: discord.Interaction):
@@ -315,7 +312,7 @@ class Youtube(commands.Cog):
         queue = playlist_data["queue"]
 
         if not queue:
-            await interaction.response.send_message("삭제할 플레이리스트가 없습니다.", ephemeral=True)
+            await interaction.followup.send("삭제할 플레이리스트가 없습니다.", ephemeral=True)
             return
 
         # Stop playback if it's running
@@ -348,7 +345,7 @@ class Youtube(commands.Cog):
                 except OSError as e:
                     log.error(f"Error removing file {song_to_delete["path"]}: {e}")
 
-        await interaction.response.send_message("플레이리스트를 모두 삭제했습니다.", ephemeral=False)
+        await interaction.followup.send("플레이리스트를 모두 삭제했습니다.", ephemeral=False)
 
 
 async def setup(bot):

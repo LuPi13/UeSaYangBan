@@ -41,7 +41,7 @@ class Rcon(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def setting(self, interaction: discord.Interaction, port: int = None, password: str = None):
         """RCON 서버의 비밀번호를 설정합니다."""
-        await interaction.response.defer(thinking=True, ephemeral=True)
+        # await interaction.response.defer(thinking=True, ephemeral=True)
         channel_id = str(interaction.channel_id)
         if (port is None) and (password is None):
             await interaction.followup.send("포트와 비밀번호 중 적어도 하나는 입력해주세요.", ephemeral=True)
@@ -75,7 +75,7 @@ class Rcon(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def send_command(self, interaction: discord.Interaction, command: str):
         """연결된 RCON으로 명령어를 전송하고 결과를 반환합니다."""
-        await interaction.response.defer(thinking=True, ephemeral=True)
+        # await interaction.response.defer(thinking=True, ephemeral=True)
         channel_id = str(interaction.channel_id)
 
         keys = list(self.links.keys())
