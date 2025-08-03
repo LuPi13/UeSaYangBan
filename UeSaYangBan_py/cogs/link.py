@@ -81,6 +81,7 @@ class Link(commands.Cog):
         except Exception as e:
             await interaction.followup.send("유효하지 않은 base64 문자열입니다. 다시 시도해주세요.", ephemeral=True)
             log.error(f"Failed to decode base64 string: {e}")
+            return
 
         # JSON parsing
         try:

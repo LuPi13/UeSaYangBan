@@ -110,7 +110,7 @@ class Youtube(commands.Cog):
     @youtube.command(name="play", description="플레이리스트를 재생합니다. 특정 번호부터 재생할 수 있습니다.")
     @app_commands.describe(index="재생을 시작할 곡의 번호 (기본값: 1)", channel="음성 채널 (선택)")
     async def play(self, interaction: discord.Interaction, index: int = None, channel: discord.VoiceChannel = None):
-        # await interaction.response.defer(thinking=True, ephemeral=True)
+        await interaction.response.defer(thinking=True, ephemeral=False)
         guild_id = interaction.guild_id
         playlist_data = self._get_playlist(guild_id)
         queue = playlist_data["queue"]
@@ -193,7 +193,7 @@ class Youtube(commands.Cog):
     @youtube.command(name="remove", description="재생 목록에서 항목을 제거하고 파일을 삭제합니다.")
     @app_commands.describe(number="제거할 항목의 번호")
     async def remove(self, interaction: discord.Interaction, number: int):
-        # await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(thinking=True, ephemeral=False)
         guild_id = interaction.guild_id
         playlist_data = self._get_playlist(guild_id)
         queue = playlist_data["queue"]
