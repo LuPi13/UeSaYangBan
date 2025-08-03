@@ -1,6 +1,7 @@
 package com.github.LuPi13.ueSaYangBan.http;
 
 import com.github.LuPi13.ueSaYangBan.http.handler.IHttpRequestHandler;
+import com.github.LuPi13.ueSaYangBan.http.handler.UnlinkHandler;
 import com.github.LuPi13.ueSaYangBan.http.handler.VerifyHandler;
 import fi.iki.elonen.NanoHTTPD;
 import org.bukkit.plugin.Plugin;
@@ -16,10 +17,7 @@ public class VerificationServer extends NanoHTTPD {
         super(port);
         // Register all handlers
         registerHandler("/verify", new VerifyHandler(plugin));
-        // You can register more handlers here for other functionalities
-        // registerHandler("/logs", new LogHandler(dataFolder));
-
-        System.out.println("\nHTTP server started at http://localhost:" + port + "/\n");
+        registerHandler("/unlink", new UnlinkHandler(plugin));
     }
 
     private void registerHandler(String uri, IHttpRequestHandler handler) {
@@ -35,8 +33,7 @@ public class VerificationServer extends NanoHTTPD {
             // Check for the correct method (e.g., POST for /verify)
             if (Method.POST.equals(session.getMethod()) && "/verify".equals(uri)) {
                 return handler.handle(session);
-            } else if (Method.GET.equals(session.getMethod()) && !"/verify".equals(uri)) {
-                // Example for other GET-based handlers
+            } else if (Method.POST.equals(session.getMethod()) && "/unlink".equals(uri)) {
                 return handler.handle(session);
             }
             // If method does not match, return a 405 Method Not Allowed error

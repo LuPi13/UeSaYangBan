@@ -171,6 +171,57 @@ class Link(commands.Cog):
             log.error(f"Failed to link: {e}")
             await interaction.followup.send(f"연결에 실패했습니다.\n{e}", ephemeral=True)
 
+    @link_group.command(name="remove", description="Discord 채널-Minecraft 서버 연결을 제거합니다.")
+    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.describe(connection_name="제거할 연결의 이름")
+    @app_commands.choices(connection_name=[
+    app_commands.Choice(name=name, value=name) for name in load_links().keys()
+    ])
+    async def remove(self, interaction: discord.Interaction, connection_name: str):
+        await interaction.response.defer(thinking=True, ephemeral=True)
+        all_links = load_links()
+
+        if connection_name not in all_links:
+            await interaction.followup.send(f"'{connection_name}'이라는 이름의 연결이 존재하지 않습니다.", ephemeral=True)
+            return
+
+        payload = {
+            "name": connection_name
+        }
+
+        try:
+            discord_server_id = all_links[connection_name]["discord_server_id"]
+
+            if str(interaction.guild.id) != str(discord_server_id):
+                await interaction.followup.send(f"'{connection_name}' 연결은 현재 서버와 관련이 없습니다.", ephemeral=True)
+                return
+
+
+            mc_http_host = all_links[connection_name]["mc_http_address"]
+            mc_http_port = all_links[connection_name]["mc_http_port"]
+            mc_http_address = f"http://{mc_http_host}:{mc_http_port}"
+            async with aiohttp.ClientSession() as session:
+                async with session.post(mc_http_address + "/unlink", json=payload) as response:
+                    if response.status == 200:
+                        log.info(f"Link removed: {connection_name} from {mc_http_address}")
+                        del all_links[connection_name]
+                        save_links(all_links)
+                        log.info(f"Link removed: {connection_name}")
+                        await interaction.followup.send(f"연결 '{connection_name}'이 성공적으로 제거되었습니다.", ephemeral=False)
+                    else:
+                        error_data = await response.text()
+                        log.error(f"Failed to unlink: {response.status} - {error_data}")
+                        await interaction.followup.send(f"연결 제거에 실패했습니다. 서버 응답: {response.status}\n{error_data}", ephemeral=True)
+                        return
+        except aiohttp.ClientError as e:
+            log.error(f"HTTP request failed: {e}")
+            await interaction.followup.send(f"연결에 실패했습니다. 서버에 접근할 수 없습니다.\n{e}", ephemeral=True)
+        except Exception as e:
+            log.error(f"Failed to link: {e}")
+            await interaction.followup.send(f"연결에 실패했습니다.\n{e}", ephemeral=True)
+
+
+
 
 
 
